@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "/home/fxy/a/bin/ChatClient"
+			"path" : "/home/fxy/chatserver/bin/ChatClient"
 		}
 	],
 	"backtrace" : 1,
@@ -76,34 +76,34 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g  "
+					"fragment" : " "
 				}
 			],
 			"includes" : 
 			[
 				{
 					"backtrace" : 3,
-					"path" : "/home/fxy/a/include"
+					"path" : "/home/fxy/chatserver/include"
 				},
 				{
 					"backtrace" : 4,
-					"path" : "/home/fxy/a/include/server"
+					"path" : "/home/fxy/chatserver/include/server"
 				},
 				{
 					"backtrace" : 5,
-					"path" : "/home/fxy/a/include/server/db"
+					"path" : "/home/fxy/chatserver/include/server/db"
 				},
 				{
 					"backtrace" : 6,
-					"path" : "/home/fxy/a/include/server/model"
+					"path" : "/home/fxy/chatserver/include/server/model"
 				},
 				{
 					"backtrace" : 7,
-					"path" : "/home/fxy/a/include/server/redis"
+					"path" : "/home/fxy/chatserver/include/server/redis"
 				},
 				{
 					"backtrace" : 8,
-					"path" : "/home/fxy/a/thirdparty"
+					"path" : "/home/fxy/chatserver/thirdparty"
 				}
 			],
 			"language" : "CXX",
@@ -118,10 +118,6 @@
 	{
 		"commandFragments" : 
 		[
-			{
-				"fragment" : "-g",
-				"role" : "flags"
-			},
 			{
 				"fragment" : "-rdynamic",
 				"role" : "flags"

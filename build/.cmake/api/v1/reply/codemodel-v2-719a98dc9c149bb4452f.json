@@ -61,7 +61,7 @@
 					]
 				}
 			],
-			"name" : "Debug",
+			"name" : "",
 			"projects" : 
 			[
 				{
@@ -85,14 +85,14 @@
 				{
 					"directoryIndex" : 3,
 					"id" : "ChatClient::@8ca63c80a879d0067daa",
-					"jsonFile" : "target-ChatClient-Debug-a97b07daca15a9099d4a.json",
+					"jsonFile" : "target-ChatClient-75752266de8341dd21c5.json",
 					"name" : "ChatClient",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 2,
 					"id" : "ChatServer::@2804e40980a64c7d7ad1",
-					"jsonFile" : "target-ChatServer-Debug-157d339d6d7ada9af4db.json",
+					"jsonFile" : "target-ChatServer-8a2976437f6fcb1a0617.json",
 					"name" : "ChatServer",
 					"projectIndex" : 0
 				}
@@ -102,8 +102,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/home/fxy/a/build",
-		"source" : "/home/fxy/a"
+		"build" : "/home/fxy/chatserver/build",
+		"source" : "/home/fxy/chatserver"
 	},
 	"version" : 
 	{

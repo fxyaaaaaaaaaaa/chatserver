@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "/home/fxy/a/bin/ChatServer"
+			"path" : "/home/fxy/chatserver/bin/ChatServer"
 		}
 	],
 	"backtrace" : 1,
@@ -76,34 +76,34 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g  "
+					"fragment" : " "
 				}
 			],
 			"includes" : 
 			[
 				{
 					"backtrace" : 3,
-					"path" : "/home/fxy/a/include"
+					"path" : "/home/fxy/chatserver/include"
 				},
 				{
 					"backtrace" : 4,
-					"path" : "/home/fxy/a/include/server"
+					"path" : "/home/fxy/chatserver/include/server"
 				},
 				{
 					"backtrace" : 5,
-					"path" : "/home/fxy/a/include/server/db"
+					"path" : "/home/fxy/chatserver/include/server/db"
 				},
 				{
 					"backtrace" : 6,
-					"path" : "/home/fxy/a/include/server/model"
+					"path" : "/home/fxy/chatserver/include/server/model"
 				},
 				{
 					"backtrace" : 7,
-					"path" : "/home/fxy/a/include/server/redis"
+					"path" : "/home/fxy/chatserver/include/server/redis"
 				},
 				{
 					"backtrace" : 8,
-					"path" : "/home/fxy/a/thirdparty"
+					"path" : "/home/fxy/chatserver/thirdparty"
 				}
 			],
 			"language" : "CXX",
@@ -117,7 +117,8 @@
 				5,
 				6,
 				7,
-				8
+				8,
+				9
 			]
 		}
 	],
@@ -126,10 +127,6 @@
 	{
 		"commandFragments" : 
 		[
-			{
-				"fragment" : "-g",
-				"role" : "flags"
-			},
 			{
 				"fragment" : "-rdynamic",
 				"role" : "flags"
@@ -152,6 +149,10 @@
 			},
 			{
 				"fragment" : "-lpthread",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lcrypto",
 				"role" : "libraries"
 			}
 		],
@@ -178,7 +179,8 @@
 				5,
 				6,
 				7,
-				8
+				8,
+				9
 			]
 		}
 	],
@@ -224,6 +226,12 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/server/model/offlinemessagemodel.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/server/model/t.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
