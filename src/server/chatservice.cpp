@@ -1,8 +1,9 @@
 #include "chatservice.hpp"
-#include "public.hpp"
+#include "protocol.hpp"
 #include <muduo/base/Logging.h>
 #include <vector>
-#include<iostream>
+#include <iostream>
+#include "encryption_data.hpp"
 ChatService *ChatService::instance()
 {
     static ChatService service;
@@ -14,6 +15,8 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
     // json 类型存储为字符串 使用get方法转为int类型
     int id = js["id"].get<int>();
     User user = _userModel.query(id);
+    password = SM::getInstance().sm3_hash(password, user.getSalt());
+
     if (user.getId() == id && user.getPwd() == password)
     {
         // id和密码正确 并且 未在其他位置登录
@@ -64,31 +67,31 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
                 }
                 response["friends"] = vec2;
             }
-            //查询用户的群组消息
-            vector<Group>groupuservec=_groupModel.queryGroups(id);
-            if(!groupuservec.empty())
+            // 查询用户的群组消息
+            vector<Group> groupuservec = _groupModel.queryGroups(id);
+            if (!groupuservec.empty())
             {
-                vector<string>groupv;
-                for(Group&group:groupuservec)
+                vector<string> groupv;
+                for (Group &group : groupuservec)
                 {
                     json grpjson;
-                    grpjson["id"]=group.getId();
-                    grpjson["groupname"]=group.getName();
-                    grpjson["groupdesc"]=group.getDesc();
-                    vector<string>userv;
-                    for(GroupUser&user:group.getUsers())
+                    grpjson["id"] = group.getId();
+                    grpjson["groupname"] = group.getName();
+                    grpjson["groupdesc"] = group.getDesc();
+                    vector<string> userv;
+                    for (GroupUser &user : group.getUsers())
                     {
                         json js;
-                        js["id"]=user.getId();
-                        js["name"]=user.getName();
-                        js["state"]=user.getState();
-                        js["role"]=user.getRole();
+                        js["id"] = user.getId();
+                        js["name"] = user.getName();
+                        js["state"] = user.getState();
+                        js["role"] = user.getRole();
                         userv.push_back(js.dump());
                     }
-                    grpjson["users"]=userv;
+                    grpjson["users"] = userv;
                     groupv.push_back(grpjson.dump());
                 }
-                response["groups"]=groupv;
+                response["groups"] = groupv;
             }
             conn->send(response.dump());
         }
@@ -140,12 +143,15 @@ ChatService::ChatService()
     _msgHandlerMap.insert({CREATE_GROUP_MSG, std::bind(&ChatService::creategroup, this, _1, _2, _3)});
     _msgHandlerMap.insert({ADD_GROUP_MSG, std::bind(&ChatService::addgroup, this, _1, _2, _3)});
     _msgHandlerMap.insert({GROUP_CHAT_MSG, std::bind(&ChatService::groupchat, this, _1, _2, _3)});
-     _msgHandlerMap.insert({LOGINOUT_MSG, std::bind(&ChatService::loginout, this, _1, _2, _3)});
-     
-     if(redis.connect())
-     {
-        redis.init_notify_handler(std::bind(&ChatService::handleRedisSubscribeMessage,this,_1,_2));
-     }
+    _msgHandlerMap.insert({LOGINOUT_MSG, std::bind(&ChatService::loginout, this, _1, _2, _3)});
+
+    _msgHandlerMap.insert({RSP_SIGN, std::bind(&ChatService::verify_sign, this, _1, _2, _3)});
+    _msgHandlerMap.insert({RSP_IvExchange, std::bind(&ChatService::ivexchange, this, _1, _2, _3)});
+    _msgHandlerMap.insert({RSP_EncryTest, std::bind(&ChatService::encry_test, this, _1, _2, _3)});
+    if (redis.connect())
+    {
+        redis.init_notify_handler(std::bind(&ChatService::handleRedisSubscribeMessage, this, _1, _2));
+    }
 };
 MsgHandler ChatService::getHandler(int msgid)
 {
@@ -163,19 +169,19 @@ MsgHandler ChatService::getHandler(int msgid)
         return _msgHandlerMap[msgid];
     }
 }
-void ChatService::loginout(const TcpConnectionPtr&conn,json&js,Timestamp time)
+void ChatService::loginout(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
-    int userid=js["id"].get<int>();
+    int userid = js["id"].get<int>();
     {
-         lock_guard<mutex> lock(_connMutex);
-         auto it=_userConnMap.find(userid);
-         if(it!=_userConnMap.end())
-         {
+        lock_guard<mutex> lock(_connMutex);
+        auto it = _userConnMap.find(userid);
+        if (it != _userConnMap.end())
+        {
             _userConnMap.erase(it);
-         }
+        }
     }
-    //更新用户信息
-    User user(userid,"","","offline");
+    // 更新用户信息
+    User user(userid, "", "", "offline");
     redis.unsubscribe(userid);
     _userModel.UpdateState(user);
 };
@@ -215,10 +221,10 @@ void ChatService::oneChat(const TcpConnectionPtr &conn, json &js, Timestamp time
             return;
         }
     }
-    if(_userModel.query(toid).getState()=="online")
+    if (_userModel.query(toid).getState() == "online")
     {
-        redis.publish(toid,js.dump());
-        return ;
+        redis.publish(toid, js.dump());
+        return;
     }
     // toid 不在线，存储离线消息
     _offlineMsgModel.insert(toid, js.dump());
@@ -262,36 +268,47 @@ void ChatService::groupchat(const TcpConnectionPtr &conn, json &js, Timestamp ti
     vector<int> group_user_id = _groupModel.queryGroupUsers(userid, groupid);
     lock_guard<mutex> lock(_connMutex);
     for (int i = 0; i < group_user_id.size(); i++)
-    {   
-        auto it=_userConnMap.find(group_user_id[i]);
-        if ( it != _userConnMap.end())
-        {   //转发群消息
+    {
+        auto it = _userConnMap.find(group_user_id[i]);
+        if (it != _userConnMap.end())
+        { // 转发群消息
             it->second->send(js.dump());
         }
-        else if(_userModel.query(group_user_id[i]).getState()=="online")
+        else if (_userModel.query(group_user_id[i]).getState() == "online")
         {
-            redis.publish(group_user_id[i],js.dump());
+            redis.publish(group_user_id[i], js.dump());
         }
         else
         {
-            //存储离线消息
-            _offlineMsgModel.insert(group_user_id[i],js.dump());
+            // 存储离线消息
+            _offlineMsgModel.insert(group_user_id[i], js.dump());
         }
     }
 };
-void ChatService::handleRedisSubscribeMessage(int userid,string msg)
+void ChatService::handleRedisSubscribeMessage(int userid, string msg)
 {
-    std::cout<<"22222222222222222222"<<endl; 
-    json js=json::parse(msg.c_str());
+    json js = json::parse(msg.c_str());
     lock_guard<mutex> lock(_connMutex);
-    auto it=_userConnMap.find(userid);
-    if(it != _userConnMap.end())
-    {   std::cout<<"33333"<<endl; 
+    auto it = _userConnMap.find(userid);
+    if (it != _userConnMap.end())
+    {
         it->second->send(js.dump());
-        std::cout<<"44444"<<endl; 
-        return ;
+        return;
     }
-    //存储用户离线消息
-    _offlineMsgModel.insert(userid,js.dump());
-    std::cout<<"55555";
+    // 存储用户离线消息
+    _offlineMsgModel.insert(userid, js.dump());
 }
+bool ChatService::verify_sign(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    
+}
+// 发送SM2密钥
+bool ChatService::ivexchange(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+
+};
+// 加密测试
+bool ChatService::encry_test(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    
+};
