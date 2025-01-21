@@ -8,11 +8,12 @@
  #include"offlinemessagemodel.hpp"
  #include"friendmodel.hpp"
  #include"groupmodel.hpp"
+ #include"gmssl_helper.hpp"
+#include"json.hpp"
+#include"redis.hpp"
 using namespace std;
 using namespace muduo;
 using namespace muduo::net;
-#include"json.hpp"
-#include"redis.hpp"
 using json=nlohmann::json;
 //处理消息的事件方法回调类型
 using MsgHandler=std::function<void(const TcpConnectionPtr&conn,json&js,Timestamp)>;
@@ -44,14 +45,20 @@ class ChatService{
      MsgHandler getHandler(int msgid);
      //Redis的回调函数
      void handleRedisSubscribeMessage(int userid,string msg);
+
+     void verify_sign(const TcpConnectionPtr &conn, json &js, Timestamp time);
+     void ivexchange(const TcpConnectionPtr &conn, json &js, Timestamp time);
+     void encry_test(const TcpConnectionPtr &conn, json &js, Timestamp time);
     private:
     ChatService();
     //存储消息id以及对应的其对应的业务处理方法
     unordered_map<int,MsgHandler>_msgHandlerMap;
     //存储在线用户的通信连接
     unordered_map<int,TcpConnectionPtr>_userConnMap;
+    //存储SM密码
+    unordered_map<string,gmssl_helper> cipher;
     //定义互斥锁 ,保证_userConnMap的线程安全
-    mutex _connMutex;
+    mutex _connMutex; 
     //数据操作对象
     UserModel _userModel;
     OfflineMsgModel _offlineMsgModel;
