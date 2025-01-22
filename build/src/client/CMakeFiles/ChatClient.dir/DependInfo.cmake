@@ -4,6 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
+  "/home/fxy/chatserver/src/client/gmssl-client.cpp" "/home/fxy/chatserver/build/src/client/CMakeFiles/ChatClient.dir/gmssl-client.cpp.o"
   "/home/fxy/chatserver/src/client/main.cpp" "/home/fxy/chatserver/build/src/client/CMakeFiles/ChatClient.dir/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
@@ -15,7 +16,9 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "../include/server/db"
   "../include/server/model"
   "../include/server/redis"
-  "../thirdparty"
+  "../include/client"
+  "../public"
+  "../public/gmssl/include"
   )
 
 # Targets to which this target links.

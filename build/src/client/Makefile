@@ -125,6 +125,33 @@ ChatClient/fast:
 	cd /home/fxy/chatserver/build && $(MAKE) -f src/client/CMakeFiles/ChatClient.dir/build.make src/client/CMakeFiles/ChatClient.dir/build
 .PHONY : ChatClient/fast
 
+gmssl-client.o: gmssl-client.cpp.o
+
+.PHONY : gmssl-client.o
+
+# target to build an object file
+gmssl-client.cpp.o:
+	cd /home/fxy/chatserver/build && $(MAKE) -f src/client/CMakeFiles/ChatClient.dir/build.make src/client/CMakeFiles/ChatClient.dir/gmssl-client.cpp.o
+.PHONY : gmssl-client.cpp.o
+
+gmssl-client.i: gmssl-client.cpp.i
+
+.PHONY : gmssl-client.i
+
+# target to preprocess a source file
+gmssl-client.cpp.i:
+	cd /home/fxy/chatserver/build && $(MAKE) -f src/client/CMakeFiles/ChatClient.dir/build.make src/client/CMakeFiles/ChatClient.dir/gmssl-client.cpp.i
+.PHONY : gmssl-client.cpp.i
+
+gmssl-client.s: gmssl-client.cpp.s
+
+.PHONY : gmssl-client.s
+
+# target to generate assembly for a file
+gmssl-client.cpp.s:
+	cd /home/fxy/chatserver/build && $(MAKE) -f src/client/CMakeFiles/ChatClient.dir/build.make src/client/CMakeFiles/ChatClient.dir/gmssl-client.cpp.s
+.PHONY : gmssl-client.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -161,6 +188,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... ChatClient"
+	@echo "... gmssl-client.o"
+	@echo "... gmssl-client.i"
+	@echo "... gmssl-client.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
