@@ -206,6 +206,33 @@ db/db.cpp.s:
 	cd /home/fxy/chatserver/build && $(MAKE) -f src/server/CMakeFiles/ChatServer.dir/build.make src/server/CMakeFiles/ChatServer.dir/db/db.cpp.s
 .PHONY : db/db.cpp.s
 
+db/encryption_data.o: db/encryption_data.cpp.o
+
+.PHONY : db/encryption_data.o
+
+# target to build an object file
+db/encryption_data.cpp.o:
+	cd /home/fxy/chatserver/build && $(MAKE) -f src/server/CMakeFiles/ChatServer.dir/build.make src/server/CMakeFiles/ChatServer.dir/db/encryption_data.cpp.o
+.PHONY : db/encryption_data.cpp.o
+
+db/encryption_data.i: db/encryption_data.cpp.i
+
+.PHONY : db/encryption_data.i
+
+# target to preprocess a source file
+db/encryption_data.cpp.i:
+	cd /home/fxy/chatserver/build && $(MAKE) -f src/server/CMakeFiles/ChatServer.dir/build.make src/server/CMakeFiles/ChatServer.dir/db/encryption_data.cpp.i
+.PHONY : db/encryption_data.cpp.i
+
+db/encryption_data.s: db/encryption_data.cpp.s
+
+.PHONY : db/encryption_data.s
+
+# target to generate assembly for a file
+db/encryption_data.cpp.s:
+	cd /home/fxy/chatserver/build && $(MAKE) -f src/server/CMakeFiles/ChatServer.dir/build.make src/server/CMakeFiles/ChatServer.dir/db/encryption_data.cpp.s
+.PHONY : db/encryption_data.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -314,33 +341,6 @@ model/offlinemessagemodel.cpp.s:
 	cd /home/fxy/chatserver/build && $(MAKE) -f src/server/CMakeFiles/ChatServer.dir/build.make src/server/CMakeFiles/ChatServer.dir/model/offlinemessagemodel.cpp.s
 .PHONY : model/offlinemessagemodel.cpp.s
 
-model/t.o: model/t.cpp.o
-
-.PHONY : model/t.o
-
-# target to build an object file
-model/t.cpp.o:
-	cd /home/fxy/chatserver/build && $(MAKE) -f src/server/CMakeFiles/ChatServer.dir/build.make src/server/CMakeFiles/ChatServer.dir/model/t.cpp.o
-.PHONY : model/t.cpp.o
-
-model/t.i: model/t.cpp.i
-
-.PHONY : model/t.i
-
-# target to preprocess a source file
-model/t.cpp.i:
-	cd /home/fxy/chatserver/build && $(MAKE) -f src/server/CMakeFiles/ChatServer.dir/build.make src/server/CMakeFiles/ChatServer.dir/model/t.cpp.i
-.PHONY : model/t.cpp.i
-
-model/t.s: model/t.cpp.s
-
-.PHONY : model/t.s
-
-# target to generate assembly for a file
-model/t.cpp.s:
-	cd /home/fxy/chatserver/build && $(MAKE) -f src/server/CMakeFiles/ChatServer.dir/build.make src/server/CMakeFiles/ChatServer.dir/model/t.cpp.s
-.PHONY : model/t.cpp.s
-
 model/uermodel.o: model/uermodel.cpp.o
 
 .PHONY : model/uermodel.o
@@ -413,6 +413,9 @@ help:
 	@echo "... db/db.o"
 	@echo "... db/db.i"
 	@echo "... db/db.s"
+	@echo "... db/encryption_data.o"
+	@echo "... db/encryption_data.i"
+	@echo "... db/encryption_data.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
@@ -425,9 +428,6 @@ help:
 	@echo "... model/offlinemessagemodel.o"
 	@echo "... model/offlinemessagemodel.i"
 	@echo "... model/offlinemessagemodel.s"
-	@echo "... model/t.o"
-	@echo "... model/t.i"
-	@echo "... model/t.s"
 	@echo "... model/uermodel.o"
 	@echo "... model/uermodel.i"
 	@echo "... model/uermodel.s"

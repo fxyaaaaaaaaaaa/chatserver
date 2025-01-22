@@ -18,4 +18,13 @@ enum EnMsgType
     ADD_GROUP_MSG,    // 加入群组
     GROUP_CHAT_MSG,   // 群聊天
 
+    //SM加密模块
+    REQ_SIGN,       //证书 签名验证
+    RSP_SIGN,
+
+    REQ_IvExchange, //加密发送IV
+    RSP_IvExchange, //发送生成的SM4密钥
+
+    REQ_EncryTest,  //SM4加密测试
+    RSP_EncryTest,  //SM4加密回应
 };
