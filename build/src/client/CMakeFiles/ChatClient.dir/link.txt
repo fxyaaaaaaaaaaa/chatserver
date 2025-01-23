@@ -1,1 +1,0 @@
-/usr/bin/g++    -rdynamic CMakeFiles/ChatClient.dir/gmssl-client.cpp.o CMakeFiles/ChatClient.dir/main.cpp.o  -o ../../../bin/ChatClient  -lpthread -lcrypto -lgmssl 

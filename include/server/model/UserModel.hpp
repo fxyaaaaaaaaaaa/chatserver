@@ -1,6 +1,5 @@
 #ifndef USERMODEL_H
 #define USERMODEL_H
-#include"db.h"
 #include"user.hpp"
 //user 表的数据操作类
 class UserModel{

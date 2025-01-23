@@ -2,7 +2,8 @@
 #define CHATSERVER_H
 #include<muduo/net/TcpServer.h>
 #include<muduo/net/EventLoop.h>
-#include<muduo/base/Logging.h>
+#include"logger.h"
+#include"sql_connection_pool.h"
 using namespace muduo;
 using namespace muduo::net;
 //聊天服务器的主类

@@ -21,6 +21,7 @@
 #include "protocol.hpp"
 #include"gmssl-client.h"
 #include "json.hpp"
+#include"logger.h"
 using namespace std;
 using json = nlohmann::json;
 void global_init();
@@ -38,7 +39,6 @@ vector<User> g_currentUserFriendList;
 vector<Group> g_currentUserGroupList;
 // 显示当前登录成功用户的基本信息
 void showCurrentUserData();
-
 // 接收线程
 void readTaskHandler(int clientfd);
 // 获取系统时间(聊天信息需要添加时间信息)
@@ -47,6 +47,38 @@ string getCurrentTime();
 void mainMenu(int clientfd);
 // 聊天客户端程序实现,main线程用作发送线程,子线程用作接收线程
 
+void help(int a = 0, string str = "");
+void chat(int, string);
+void addfriend(int, string);
+void creategroup(int, string);
+void addgroup(int, string);
+void groupchat(int, string);
+void loginout(int, string);
+void registerspond(json &responsejs);
+void loginrespond(json &responsejs);
+bool SM_1(json &responsejs);
+bool SM_2(json &responsejs);
+bool SM_3(json &responsejs);
+unordered_map<string, string> _commandMap =
+{
+        {"help", "显示所有支持的命令,格式: help"},
+        {"chat", "一对一聊天,格式: chat:friendid:message"},
+        {"addfriend", "添加好友,格式: addfriend:friendid"},
+        {"creategroup", "创建群组,格式: creategroup:groupname:groupdesc"},
+        {"addgroup", "加入群组,格式: addgroup:groupid"},
+        {"groupchat", "群聊,格式: groupchat:groupid:message"},
+        {"loginout", "注销,格式: loginout"}
+};
+unordered_map<string, function<void(int, string)>> commandHandlerMap =
+{
+        {"help", help},
+        {"chat", chat},
+        {"addfriend", addfriend},
+        {"creategroup", creategroup},
+        {"addgroup", addgroup},
+        {"groupchat", groupchat},
+        {"loginout", loginout}
+};
 int main(int argc, char **argv)
 {
     global_init();
@@ -350,11 +382,6 @@ std:
     }
     return 0;
 }
-void registerspond(json &responsejs);
-void loginrespond(json &responsejs);
-bool SM_1(json &responsejs);
-bool SM_2(json &responsejs);
-bool SM_3(json &responsejs);
 // 显示当前登录成功用户的基本信息
 void showCurrentUserData()
 {
@@ -541,31 +568,7 @@ void loginrespond(json &responsejs)
     }
     sem_post(&rwsem);
 };
-unordered_map<string, string> _commandMap =
-    {
-        {"help", "显示所有支持的命令,格式: help"},
-        {"chat", "一对一聊天,格式: chat:friendid:message"},
-        {"addfriend", "添加好友,格式: addfriend:friendid"},
-        {"creategroup", "创建群组,格式: creategroup:groupname:groupdesc"},
-        {"addgroup", "加入群组,格式: addgroup:groupid"},
-        {"groupchat", "群聊,格式: groupchat:groupid:message"},
-        {"loginout", "注销,格式: loginout"}};
-void help(int a = 0, string str = "");
-void chat(int, string);
-void addfriend(int, string);
-void creategroup(int, string);
-void addgroup(int, string);
-void groupchat(int, string);
-void loginout(int, string);
-unordered_map<string, function<void(int, string)>> commandHandlerMap =
-    {
-        {"help", help},
-        {"chat", chat},
-        {"addfriend", addfriend},
-        {"creategroup", creategroup},
-        {"addgroup", addgroup},
-        {"groupchat", groupchat},
-        {"loginout", loginout}};
+
 // 主聊天页面程序
 void mainMenu(int clientfd)
 {
@@ -791,6 +794,10 @@ bool SM_1(json &responsejs)
 
 
     vector<UCHAR>en_meg=responsejs["en_msg"];
+    if(responsejs["error"])
+    {
+        return false;
+    }
     size_t out_len = 80;
     UCHAR out_data[80] = "";
     if (gmssl_helpe::get_instance().sm2_slice_decrypt(&gmssl_helpe::get_instance().m_ca_1_key, en_meg.data(), en_meg.size(), out_data, &out_len) != 1)

@@ -1,6 +1,6 @@
 #include "chatservice.hpp"
 #include "protocol.hpp"
-#include <muduo/base/Logging.h>
+#include "logger.h"
 #include <vector>
 #include <iostream>
 #include "encryption_data.hpp"
@@ -161,7 +161,7 @@ MsgHandler ChatService::getHandler(int msgid)
     {
         return [=](const TcpConnectionPtr &conn, json &js, Timestamp time)
         {
-            LOG_ERROR << "msgid:" << msgid << "can not find handler!";
+            CLOG_ERROR("msgid:%d can not find handler!",msgid);
         };
     }
     else
@@ -310,11 +310,11 @@ void ChatService::verify_sign(const TcpConnectionPtr &conn, json &js, Timestamp 
     vector<unsigned char> s_data(cer);
     vector<unsigned char> r(1024, 0);
 
-    json resp;
+    json responsejs;
     s_data.insert(s_data.end(), r1.begin(), r1.end());
     do
     {
-        if (cer.size == 0 || sign.size() == 0)
+        if (cer.size() == 0 || sign.size() == 0)
         {
 
             break;
@@ -324,50 +324,50 @@ void ChatService::verify_sign(const TcpConnectionPtr &conn, json &js, Timestamp 
         {
             break;
         }
-        ret = p_gmssl.check_cert_validity(cert_fp);
+        ret = gmssl.check_cert_validity(cert_fp);
         if (!ret)
         {
             break;
         }
-        ret = p_gmssl.gm_sm2_verify_sign(sign.data(), sign.size(), s_data.data());
+        ret = gmssl.gm_sm2_verify_sign(sign.data(), sign.size(), s_data.data());
         if (!ret)
         {
-            printf("sign error.");
+            CLOG_ERROR("sign error.");
             break;
         }
         SM2_KEY local_key = {0};
         uint8_t local_random[8] = {0};
-        p_gmssl.init_local_key(&local_key);
-        p_gmssl.set_remote_random(r1.data(), local_random);
+        gmssl.init_local_key(&local_key);
+        gmssl.set_remote_random(r1.data(), local_random);
         memcpy(r.data(), local_random, 8);
         memcpy(r.data() + 8, &local_key.public_key, sizeof(local_key.public_key));
         vector<unsigned char> out_data(1024, 0);
         size_t en_len = 0;
-        ret = p_gmssl->gm_sm2_encrypt(r.data(), 8 + sizeof(local_key), out_data.data(), &en_len);
+        ret = gmssl.gm_sm2_encrypt(r.data(), 8 + sizeof(local_key), out_data.data(), &en_len);
         if (!ret)
         {
             printf("sm2 encrypt error.");
             break;
         }
-        vector<unsigned char> res(out_data.data, out_data.data + en_len);
+        vector<unsigned char> res(out_data.data(), out_data.data() + en_len);
         responsejs["en_msg"] = res;
         ret = true;
 
-    } while (false) 
+    } while (false);
     if (cert_fp)
     {
-        close(cert_fp);
+        fclose(cert_fp);
     }
-    responsejs["msgid"]=
+    responsejs["msgid"] = RSP_SIGN;
     responsejs["error"] = !ret;
-    conn->send(response.dump());
+    conn->send(responsejs.dump());
     if (!ret)
     {
         conn->shutdown();
     }
     else
     {
-        cipher.insert({conn.name, gmssl});
+        cipher.insert({conn->name(), gmssl});
     }
 
     // 如果CA可以那么就加入到cipher里 并且生成SM2的公私钥和R1(XOR) 并用对端的公钥加密R1和公钥发送
@@ -382,50 +382,51 @@ void ChatService::ivexchange(const TcpConnectionPtr &conn, json &js, Timestamp t
     vector<unsigned char> en_data(100);
     vector<unsigned char> iv_data(100, 0);
     vector<unsigned char> clear_data(1024, 0);
-    json resp;
+    json responsejs;
     do
     {
-        if (cipher.find(conn->name) == cipher.end())
+        if (cipher.find(conn->name()) == cipher.end())
         {
-            printf("未进行认证的请求");
+            CLOG_ERROR("未进行认证的请求");
             break;
         }
-        gmssl_helper &gmssl = cipher[conn->name];
+        gmssl_helper &gmssl = cipher[conn->name()];
         ret = gmssl.gm_sm2_verify_sign(encode_iv.data(), encode_iv.size(), sign.data());
         if (!ret)
         {
-            printf("sign error.");
+            CLOG_ERROR("sign error.");
             break;
         }
         size_t iv_de_len = 0;
         ret = gmssl.gm_sm2_decrypt(encode_iv.data(), encode_iv.size(), iv_data.data(), &iv_de_len);
         if (!ret || iv_de_len != 16)
         {
-            CLOG_ERR("sm2 decrypt error.");
+            CLOG_ERROR("sm2 decrypt error.");
             break;
         }
         gmssl.set_sm4_iv(iv_data.data());
         // SM4密码
-        rand_bytes(clear_data, 16);
+        rand_bytes(clear_data.data(), 16);
         // 存储SM4密码
-        gmssl.set_sm4_pswd(clear_data);
+        gmssl.set_sm4_pswd(clear_data.data());
         size_t pswd_en_len = 0;
-        ret = p_gmssl->gm_sm2_encrypt(clear_data, 16, en_data.data(), &pswd_en_len);
+        ret = gmssl.gm_sm2_encrypt(clear_data.data(), 16, en_data.data(), &pswd_en_len);
         if (!ret)
         {
-            printf("sm2 encrypt error.");
+            CLOG_ERROR("sm2 encrypt error.");
             break;
         }
-        vector<unsigned char> en_code_s(en_data.data(), pswd_en_len);
+        vector<unsigned char> en_code_s(en_data.data(), en_data.data() + pswd_en_len);
         ret = true;
-        resp["encode_test"] = en_code_s;
-    } while (false)
-     responsejs["msgid"]=
-    resp["error"] = !ret;
-    conn->send(response.dump());
+        responsejs["encode_test"] = en_code_s;
+    } while (false);
+    responsejs["msgid"] = RSP_IvExchange;
+    responsejs["error"] = !ret;
+    conn->send(responsejs.dump());
     if (!ret)
     {
         conn->shutdown();
+        cipher.erase(conn->name());
     }
 };
 // 加密测试
@@ -437,37 +438,37 @@ void ChatService::encry_test(const TcpConnectionPtr &conn, json &js, Timestamp t
     vector<unsigned char> sign = js["signed"].get<vector<unsigned char>>();
     vector<unsigned char> decode_test(16, 0);
     size_t encode_len = 0;
-    json response;
+    json responsejs;
     do
     {
-        if (cipher.find(conn->name) == cipher.end())
+        if (cipher.find(conn->name()) == cipher.end())
         {
-            printf("未进行认证的请求");
+            CLOG_ERROR("未进行认证的请求");
             break;
         }
-        gmssl_helper &gmssl = cipher[conn->name];
+        gmssl_helper &gmssl = cipher[conn->name()];
         ret = gmssl.gm_sm2_verify_sign(encode_test.data(), encode_test.size(), sign.data());
         if (!ret)
         {
-            printf("sign error.");
+            CLOG_ERROR("sign error.");
             break;
         }
         uint8_t store_random[16] = {0};
-        p_gmssl.get_store_random(store_random); // 取出存储的随机数
-        ret = gmssl.gm_sm2_decrypt(encode_test.data(), encode_test.size(), decode_test, &encode_len);
-        if (!ret || memcmp(decode_test,store_random,16) != 0)
+        gmssl.get_store_random(store_random); // 取出存储的随机数
+        ret = gmssl.gm_sm2_decrypt(encode_test.data(), encode_test.size(), decode_test.data(), &encode_len);
+        if (!ret || memcmp(decode_test.data(), store_random, 16) != 0)
         {
-            printf("sm4 decrypt error.");
+            CLOG_INFO("sm4 decrypt error.");
             break;
         }
-        ret=true;
+        ret = true;
     } while (false);
-    responsejs["msgid"]=
-    response["error"] = !ret;
-    conn->send(response.dump());
+    responsejs["msgid"] = RSP_EncryTest;
+    responsejs["error"] = !ret;
+    conn->send(responsejs.dump());
     if (!ret)
     {
         conn->shutdown();
+        cipher.erase(conn->name());
     }
-
 };

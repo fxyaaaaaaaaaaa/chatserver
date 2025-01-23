@@ -2,7 +2,7 @@
 #include<iostream>
 #include"chatservice.hpp"
 #include<signal.h>
-#include<muduo/base/Logging.h>
+#include"logger.h"
 #include <unistd.h>
 using namespace std;
 //处理服务器ctrl+c结束后,重置user状态信息的
@@ -16,7 +16,9 @@ int main(int argc,char **argv){
         cerr << "command invalidd! example: ./ChatClient 127.0.0.1 6000" << endl;
         exit(-1);
     }
-    LOG_INFO<<"Thread id:"<<getpid();
+    CLOG_INFO("Thread id:%d",getpid());
+     //初始化MySQL模块连接池
+    connection_pool::GetInstance()->init("127.0.0.1","root","123456","chat",3306,4);
     // 解析通过命令行参数传递的ip和port
     char *ip = argv[1];
     uint16_t port = atoi(argv[2]);

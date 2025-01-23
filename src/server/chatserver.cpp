@@ -48,7 +48,7 @@ void ChatServer::OnMessage(const TcpConnectionPtr &conn, Buffer *buffer, Timesta
             }
             catch (const nlohmann::json::parse_error &e)
             {
-                LOG_ERROR << "JSON parse error at byte " << e.byte << ": " << e.what();
+                CLOG_ERROR("SON parse error at byte"); 
                 break;
                 // 处理解析失败的情况，例如记录错误、返回默认值等
             }
